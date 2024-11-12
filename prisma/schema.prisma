@@ -1,0 +1,797 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String              @id @default(uuid())
+  firstName              String              @db.VarChar(20)
+  lastName               String              @db.VarChar(20)
+  email                  String?             @unique
+  category               UserCategory        @default(CIVILIAN)
+  phone                  String              @unique @db.VarChar(10)
+  role                   String              @default("user")
+  isVerifiedUser         Boolean             @default(false)
+  userVerifiedBy         String?
+  isBlocked              Boolean             @default(false)
+  otp                    String?
+  otpExpires             DateTime?
+  image                  String              @default("https://images.unsplash.com/photo-1630534658718-395efda906cb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fGFybXl8ZW58MHx8MHx8fDA%3D&w=1000&q=80")
+  gender                 String?
+  dob                    DateTime
+  isEmailVerified        Boolean             @default(false)
+  isPhoneVerified        Boolean             @default(false)
+  isRecruiter            Boolean             @default(false)
+  isRecruiterVerified    Boolean             @default(false)
+  recruiterVerifiedBy    String?
+  companyName            String?
+  companyEmail           String?
+  blockUser              String[]
+  blockBy                String[]
+  emailOTP               String?
+  emailOTPExpires        DateTime?
+  imageKey               String?
+  isDeleted              Boolean             @default(false)
+  imageExpires           DateTime?
+  isFirstLogin           Boolean             @default(true)
+  emailVerificationToken String?
+  fcmToken               String?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  isPrivateAccount       Boolean             @default(false)
+  isPublicProfile        Boolean             @default(true)
+  allowPushNotification  Boolean             @default(true)
+  allowEmailNotification Boolean             @default(true)
+  isProfileDeleted       Boolean             @default(false)
+  isThemeChanged         Boolean             @default(true)
+  profile                Profile?
+  posts                  Post[]
+  likes                  Like[]
+  comments               Comment[]
+  reasons                Reason[]
+  blogs                  Blog[]
+  isCreator              Boolean             @default(false)
+  coursesCreated         Course[]
+  enrollments            Enrollment[]
+  courseCertificate      CourseCertificate[]
+  appliedJobs            AppliedJob[]
+  savedJobs              SavedJob[]
+  applicationForm        ApplicationForm[]
+  followers              Follows[]           @relation("following")
+  following              Follows[]           @relation("follower")
+  sentFollowRequests     FollowRequest[]     @relation("SentFollowRequests")
+  receivedFollowRequests FollowRequest[]     @relation("ReceivedFollowRequests")
+  notifications          Notification[]
+  followercount          Int?
+  followingcount         Int?
+  Report                 Report[]
+  Savedpost              Savedpost[]
+  VideoProgress          VideoProgress[]
+  CourseReviews          CourseReviews?
+}
+
+model Follows {
+  follower    User     @relation("follower", fields: [followerId], references: [id])
+  followerId  String
+  following   User     @relation("following", fields: [followingId], references: [id])
+  followingId String
+  createdAt   DateTime @default(now())
+
+  @@id([followerId, followingId])
+  @@map("follows")
+}
+
+model FollowRequest {
+  id         String              @id @default(uuid())
+  fromUser   User                @relation("SentFollowRequests", fields: [fromUserId], references: [id])
+  fromUserId String
+  toUser     User                @relation("ReceivedFollowRequests", fields: [toUserId], references: [id])
+  toUserId   String
+  status     FollowRequestStatus @default(PENDING)
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  user      User             @relation(fields: [userId], references: [id])
+  userId    String
+  type      NotificationType
+  content   String
+  isRead    Boolean          @default(false)
+  postId    String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+enum FollowRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum NotificationType {
+  FOLLOW_REQUEST
+  FOLLOW_ACCEPT
+  NEW_FOLLOWER
+  LIKE
+  COMMENT
+  NEW_POST
+  // Add other notification types as needed
+}
+
+model Profile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  about              String?  @db.VarChar(500)
+  location           String?
+  facebook           String?
+  twitter            String?
+  linkedIn           String?
+  instagram          String?
+  youtube            String?
+  website            String?
+  achievements       String[]
+  interests          String[]
+  coverImage         String   @default("https://ik.imagekit.io/vetnet/army.png")
+  isProfileCompleted Boolean  @default(false)
+  isProfileVerified  Boolean  @default(false)
+  govEmail           String?
+  isGovEmailVerified Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  experience Experience[]
+  education  Education[]
+
+  skills         Skill[]
+  certifications Certification[]
+  resumes        Resume[]
+
+  militaryProfile MilitaryProfile[]
+
+  @@map("profiles")
+}
+
+model MilitaryProfile {
+  id               String           @id @default(uuid())
+  profileId        String
+  profile          Profile          @relation(fields: [profileId], references: [id])
+  dateOfCommission DateTime?
+  dateOfRetirement DateTime?
+  service          MilitaryService  @default(NONE)
+  rank             String
+  title            JobtitleMaster[]
+  deployment       String[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@map("military_profiles")
+}
+
+model Blog {
+  id           String    @id @default(uuid())
+  title        String
+  description  String?   @db.VarChar(500)
+  content      Json
+  tags         String[]
+  slug         String    @unique
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  key          String?
+  isEdited     Boolean   @default(false)
+  isApproved   Boolean   @default(false)
+  isPublished  Boolean   @default(true)
+  isFeatured   Boolean   @default(false)
+  isReported   Boolean   @default(false)
+  isSponsored  Boolean   @default(false)
+  isPromoted   Boolean   @default(false)
+  isDeleted    Boolean   @default(false)
+  likes        Like[]
+  likescount   Int?
+  comments     Comment[]
+  commentcount Int?
+  ratings      Json[]
+  expiryDate   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  Report       Report[]
+
+  @@map("blogs")
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  blogId    String?
+  blog      Blog?    @relation(fields: [blogId], references: [id])
+  postId    String?
+  post      Post?    @relation(fields: [postId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@map("likes")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  blogId    String?
+  blog      Blog?    @relation(fields: [blogId], references: [id])
+  postId    String?
+  post      Post?    @relation(fields: [postId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("comments")
+}
+
+model Report {
+  id          String    @id @default(uuid())
+  reportFor   ReportFor
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  postId      String?
+  post        Post?     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  blogId      String?
+  blog        Blog?     @relation(fields: [blogId], references: [id])
+  jobId       String?
+  job         Job?      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  category    String
+  description String
+  status      String     @default("PENDING")
+  createdAt   DateTime  @default(now())
+
+  @@map("report")
+}
+
+model Savedpost {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  postId String  @unique
+  post   Post   @relation(fields: [postId], references: [id])
+
+  @@unique([userId, postId])
+
+  @@map("savedpost")
+}
+
+model Post {
+  id             String        @id @default(uuid())
+  content        String        @db.VarChar(2000)
+  image          String?
+  imageExpires   DateTime?
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  key            String?
+  likes          Like[]
+  comments       Comment[]
+  tags           String[]
+  isEdited       Boolean       @default(false)
+  isApproved     Boolean       @default(false)
+  isPublished    Boolean       @default(false)
+  isFeatured     Boolean       @default(false)
+  isReported     Boolean       @default(false)
+  isSponsored    Boolean       @default(false)
+  isPromoted     Boolean       @default(false)
+  isDeleted      Boolean       @default(false)
+  reportedReason ReportReason?
+  reason         Reason[]
+  reportedBy     String[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  Report         Report[]
+  Savedpost      Savedpost[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("posts")
+}
+
+model Reason {
+  id     String @id @default(uuid())
+  text   String
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+
+  @@map("reasons")
+}
+
+enum ReportReason {
+  spam
+  inappropriate_content
+  harassment
+  offensive
+  misinformation
+  other
+}
+
+enum ReportFor {
+  POST
+  JOB
+  BLOG
+  COURSE
+  USER
+}
+
+model Experience {
+  id             String         @id @default(uuid())
+  profileId      String
+  profile        Profile        @relation(fields: [profileId], references: [id])
+  companyId      String
+  company        CompanyMaster  @relation(fields: [companyId], references: [id])
+  titleId        String
+  title          JobtitleMaster @relation(fields: [titleId], references: [id])
+  startDate      DateTime
+  endDate        DateTime?
+  description    String?
+  location       String?
+  locationType   String?
+  employmentType String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@map("experiences")
+}
+
+model Education {
+  id             String             @id @default(uuid())
+  profileId      String
+  profile        Profile            @relation(fields: [profileId], references: [id])
+  universityId   String
+  university     UniversityMaster   @relation(fields: [universityId], references: [id])
+  degreeId       String
+  degree         DegreeMaster       @relation(fields: [degreeId], references: [id])
+  fieldofstudyId String
+  fieldofstudy   FieldofstudyMaster @relation(fields: [fieldofstudyId], references: [id])
+  startDate      DateTime
+  endDate        DateTime?
+  grade          String?
+  activities     String?
+  description    String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@map("educations")
+}
+
+model Skill {
+  id            String      @id @default(uuid())
+  profileId     String
+  profile       Profile     @relation(fields: [profileId], references: [id])
+  skillMasterId String
+  skillMaster   SkillMaster @relation(fields: [skillMasterId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("skills")
+}
+
+model Certification {
+  id                    String              @id @default(uuid())
+  profileId             String
+  profile               Profile             @relation(fields: [profileId], references: [id])
+  certificationMasterId String
+  certificationMaster   CertificationMaster @relation(fields: [certificationMasterId], references: [id])
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  @@map("certifications")
+}
+
+model CertificationSales {
+  id          String   @id @default(uuid())
+  type        String
+  course      String
+  price       Float
+  tax         Float
+  discount    Float
+  description String
+  image       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("certification_sales")
+}
+
+model Resume {
+  id        String   @id @default(uuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  url       String
+  key       String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("resumes")
+}
+
+model SkillMaster {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  skills    Skill[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Job       Job[]
+
+  @@map("skill_masters")
+}
+
+model CertificationMaster {
+  id             String          @id @default(uuid())
+  name           String          @unique
+  certifications Certification[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@map("certification_masters")
+}
+
+model UniversityMaster {
+  id         String      @id @default(uuid())
+  name       String      @unique
+  location   String?
+  country    String?
+  website    String?
+  educations Education[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@map("university_masters")
+}
+
+model CompanyMaster {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  logo        String?
+  industry    String?
+  website     String?
+  location    String?
+  experiences Experience[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  Recruiter   Recruiter[]
+
+  @@map("company_masters")
+}
+
+model JobtitleMaster {
+  id              String            @id @default(uuid())
+  name            String            @unique
+  experiences     Experience[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  MilitaryProfile MilitaryProfile[]
+  Job             Job[]
+
+  @@map("jobtitle_masters")
+}
+
+model DegreeMaster {
+  id        String      @id @default(uuid())
+  name      String      @unique
+  education Education[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  Job       Job[]
+
+  @@map("degree_masters")
+}
+
+model FieldofstudyMaster {
+  id        String      @id @default(uuid())
+  name      String      @unique
+  education Education[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  Job       Job[]
+
+  @@map("fieldofstudy_masters")
+}
+
+enum MilitaryService {
+  ARMY
+  NAVY
+  AIRFORCE
+  COASTGUARD
+  NONE
+}
+
+enum UserCategory {
+  SERVING
+  VETERAN
+  CIVILIAN
+  SPOUSE
+}
+
+model Course {
+  id                String              @id @default(uuid())
+  title             String
+  description       String?
+  price             Float?
+  discount          Float?
+  instructorId      String?
+  instructor        User?               @relation(fields: [instructorId], references: [id])
+  categoryid        String?
+  category          CourseCategory?     @relation(fields: [categoryid], references: [id])
+  level             String?
+  language          String?
+  prerequisites     String[]
+  learningOutcomes  String[]
+  enrollmentCount   Int?                @default(0)
+  isPublished       Boolean?            @default(false)
+  createdAt         DateTime?           @default(now())
+  updatedAt         DateTime?           @updatedAt
+  courseReviews     CourseReviews[]
+  thumbnail         String?
+  chapters          Chapter[]
+  enrollments       Enrollment[]
+  courseCertificate CourseCertificate[]
+  resources         Resource[]
+  Lesson            Lesson[]
+
+  @@map("courses")
+}
+
+model Chapter {
+  id          String    @id @default(uuid())
+  courseId    String
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @updatedAt
+  lessons     Lesson[]
+  published   Boolean?
+
+  @@map("chapters")
+}
+
+model Lesson {
+  id          String      @id @default(uuid())
+  chapterId   String?
+  chapter     Chapter?    @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  courseId    String?
+  course      Course?     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  content     String?
+  iscompleted Boolean?
+  duration    Int?
+  type        LessonType?
+  createdAt   DateTime?   @default(now())
+  updatedAt   DateTime?   @updatedAt
+  published   Boolean?
+  resources   Resource[]
+
+  @@map("lessons")
+}
+
+enum LessonType {
+  VIDEO
+  TEXT
+  AUDIO
+  PRESENTATION
+}
+
+model Resource {
+  id        String       @id @default(uuid())
+  courseId  String?
+  course    Course?      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessonId  String?
+  lesson    Lesson?      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  title     String
+  type      ResourceType
+  url       String[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("resources")
+}
+
+enum ResourceType {
+  PDF
+  LINK
+  IMAGE
+  AUDIO
+  VIDEO
+}
+
+model VideoProgress {
+  id             String   @id @default(uuid())
+  userId         String
+  User           User     @relation(fields: [userId], references: [id])
+  lessonId       String?
+  resourceId     String?
+  latestPlaytime Int?
+  isComplete     Boolean?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Enrollment {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  courseId    String
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrolledAt  DateTime  @default(now())
+  completedAt DateTime?
+  progress    Float     @default(0)
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
+}
+
+model CourseCertificate {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  courseId       String
+  course         Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  issueDate      DateTime @default(now())
+  certificateUrl String
+
+  @@unique([userId, courseId])
+  @@map("CourseCertificate")
+}
+
+model CourseCategory {
+  id        String   @id @default(uuid())
+  name      String
+  courses   Course[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CourseReviews {
+  id        String   @id @default(uuid())
+  courseId  String   
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId    String @unique
+  User      User    @relation(fields: [userId], references: [id])
+  ratings   Int
+  reviews   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, courseId])
+}
+
+model Job {
+  id                 String               @id @default(uuid())
+  titleId            String
+  title              JobtitleMaster       @relation(fields: [titleId], references: [id])
+  recruiterId        String
+  recruiter          Recruiter            @relation(fields: [recruiterId], references: [id])
+  location           String
+  locationType       String
+  salary             Int
+  description        String
+  skills             SkillMaster[]
+  experience         String
+  openings           Int
+  applicants         Int
+  education          FieldofstudyMaster[]
+  department         DegreeMaster[]
+  employmentType     String
+  companyDescription String
+  industryType       String
+  companyWebsite     String
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  status             JobStatus            @default(ACTIVE)
+  isReported         Boolean?
+
+  // Many-to-many relations for applied and saved jobs
+  appliedBy AppliedJob[]
+  savedBy   SavedJob[]
+
+  Report Report[]
+}
+
+model Recruiter {
+  id        String        @id @default(uuid())
+  name      String
+  email     String        @unique
+  phone     String?
+  companyId String
+  company   CompanyMaster @relation(fields: [companyId], references: [id])
+  position  String? // Recruiter's position within the company
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  jobs Job[] // One-to-many relation with Job
+}
+
+model AppliedJob {
+  id            String            @id @default(uuid())
+  userId        String
+  jobId         String
+  user          User              @relation(fields: [userId], references: [id])
+  job           Job               @relation(fields: [jobId], references: [id])
+  appliedAt     DateTime          @default(now())
+  status        ApplicationStatus @default(APPLIED)
+  lastUpdatedAt DateTime          @updatedAt
+
+  @@unique([userId, jobId])
+}
+
+model SavedJob {
+  id      String   @id @default(uuid())
+  userId  String
+  jobId   String
+  user    User     @relation(fields: [userId], references: [id])
+  job     Job      @relation(fields: [jobId], references: [id])
+  savedAt DateTime @default(now())
+
+  @@unique([userId, jobId])
+}
+
+enum JobStatus {
+  ACTIVE
+  INACTIVE
+  COMPLETED
+}
+
+enum ApplicationStatus {
+  APPLIED
+  RESUME_VIEWED
+  INTERVIEW_SCHEDULED
+  INTERVIEWED
+  OFFER_EXTENDED
+  HIRED
+  REJECTED
+}
+
+model ApplicationForm {
+  id                String               @id @default(uuid())
+  userId            String
+  User              User                 @relation(fields: [userId], references: [id])
+  fullname          String
+  dateOfBirth       DateTime
+  email             String               @unique
+  phoneNumber       String
+  alternativeNumber String?
+  address           String?
+  city              String?
+  state             String?
+  pincode           String?
+  passportSizePhoto String?
+  education         ApplicantEducation[]
+  service           String
+  dateOfCommission  DateTime
+  rank              String
+  dateOfRetirement  DateTime?
+  armOrBranch       String
+  essay             String?
+  resumeFile        String
+  certificationFile String?
+  withdrawal        Boolean?             @default(false)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+}
+
+model ApplicantEducation {
+  id                String          @id @default(uuid())
+  nameOfUniversity  String
+  degree            String
+  grade             String
+  fieldOfStudy      String
+  yearOfEnrollment  Int
+  yearOfPassing     Int
+  applicationFormId String
+  applicationForm   ApplicationForm @relation(fields: [applicationFormId], references: [id], onDelete: Cascade)
+}

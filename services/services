@@ -1,0 +1,42 @@
+import { PrismaClient, CertificationSales } from "@prisma/client";
+import { db } from "@/lib/db";
+
+export const createCertificationSales = async (
+  data: Omit<CertificationSales, "id" | "createdAt" | "updatedAt">
+): Promise<CertificationSales> => {
+  return db.certificationSales.create({
+    data: {
+      ...data,
+      price: parseFloat(data.price as unknown as string),
+    },
+  });
+};
+
+export const getCertificationSalesById = async (
+  id: string
+): Promise<CertificationSales | null> => {
+  return db.certificationSales.findUnique({ where: { id } });
+};
+
+export const getAllCertificationSales = async (): Promise<CertificationSales[]> => {
+  return db.certificationSales.findMany();
+};
+
+export const updateCertificationSales = async (
+  id: string,
+  data: Partial<CertificationSales>
+): Promise<CertificationSales> => {
+  return db.certificationSales.update({
+    where: { id },
+    data: {
+      ...data,
+      price: data.price
+        ? parseFloat(data.price as unknown as string)
+        : undefined,
+    },
+  });
+};
+
+export const deleteCertificationSales = async (id: string): Promise<void> => {
+  await db.certificationSales.delete({ where: { id } });
+};
