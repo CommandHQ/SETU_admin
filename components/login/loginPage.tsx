@@ -1,14 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { Phone, ArrowRight } from "lucide-react";
+import { Phone, ArrowRight, Lock, CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
-
 
 export default function Login() {
   const router = useRouter();
@@ -16,7 +13,8 @@ export default function Login() {
 
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
+  // Fix: Properly type the refs array
+  const otpInputs = useRef<Array<HTMLInputElement | null>>([]);
   const [step, setStep] = useState(1); // 1 = Phone, 2 = OTP
 
   const [isSendingOTP, setIsSendingOTP] = useState(false);
@@ -51,7 +49,8 @@ export default function Login() {
       const result = await signIn("credentials", {
         phone: phoneNumber,
         otp: otpString,
-        callbackUrl:"/dashboard"
+        redirect: false,
+        callbackUrl: "/dashboard"
       });
 
       if (result?.error) {
@@ -92,194 +91,157 @@ export default function Login() {
   }, [step]);
 
   useEffect(() => {
-    // Only proceed if we have a definitive session status
-    if (sessionStatus !== 'loading') {
-      // If user is authenticated, redirect to dashboard immediately
-      if (sessionStatus === 'authenticated' && session) {
-        // Using replace instead of push to prevent adding to history stack
-        router.replace('/dashboard');
-      }
+    if (sessionStatus !== 'loading' && sessionStatus === 'authenticated' && session) {
+      toast.error("You're already authenticated");
+      router.replace('/dashboard');
     }
   }, [sessionStatus, session, router]);
 
+  // Features list for the left panel
+  const features = [
+    { icon: CheckCircle, text: "Secure Authentication" },
+    { icon: CheckCircle, text: "Real-time Updates" },
+    { icon: CheckCircle, text: "Seamless Access" }
+  ];
+
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gray-100">
+    <div className="min-h-screen flex flex-col md:flex-row">
+      {/* Animated Background */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+        <div className="absolute inset-0 bg-grid-slate-200/20 bg-[size:20px_20px] opacity-100" />
+      </div>
+
       {/* Left Column - Static Content */}
-      <div className="md:w-1/2 bg-indigo-800 p-8 flex flex-col justify-center items-center">
-        <div className="w-full max-w-md space-y-8 flex flex-col items-center">
-          <div className="text-center">
-            <h2 className="text-3xl font-semibold text-white mb-2">
+      <div className="md:w-1/2 bg-gradient-to-br from-indigo-800 to-purple-900 p-8 flex flex-col justify-center items-center relative overflow-hidden">
+        {/* Animated shapes */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-indigo-600/20 rounded-full blur-3xl animate-blob" />
+          <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-purple-600/20 rounded-full blur-3xl animate-blob animation-delay-2000" />
+          <div className="absolute bottom-1/4 left-1/3 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl animate-blob animation-delay-4000" />
+        </div>
+
+        <div className="w-full max-w-md space-y-8 flex flex-col items-center relative z-10">
+          <div className="text-center space-y-6">
+            <div className="inline-flex p-3 rounded-full bg-white/10 backdrop-blur-sm mb-6">
+              <Lock className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-4xl font-bold text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-indigo-200">
               Welcome to SETU Admin
             </h2>
-            <p className="text-xl text-gray-200">
-              Connect, Grow, and Support your veteran network
+            <p className="text-xl text-indigo-200 leading-relaxed">
+              Connect, Grow, and Support your veteran network with our secure platform
             </p>
           </div>
         </div>
       </div>
+
       {/* Right Column - Login Form */}
-      <div className="md:w-1/2 p-8 flex flex-col items-center justify-center">
-        <Image
-          src="/setu.svg"
-          alt="SETU Logo"
-          width={200}
-          height={60}
-          className="mb-8"
-        />
+      <div className="md:w-1/2 p-8 flex flex-col items-center justify-center relative">
         <div className="w-full max-w-md">
-          <Card className="bg-white shadow-2xl">
+          <Card className="bg-white/80 backdrop-blur-lg shadow-2xl border-0 relative">
             <div className="p-8">
-              <div className="text-center mb-6">
-                <h1 className="text-2xl font-bold text-indigo-900">
-                  Welcome Back!
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  {step === 1 ? "Sign In" : "Verify OTP"}
                 </h1>
                 <p className="text-gray-600">
-                  Sign in to your SETU Admin account
+                  {step === 1 
+                    ? "Enter your phone number to continue" 
+                    : "Enter the verification code sent to your phone"}
                 </p>
               </div>
+
               {step === 1 ? (
-                <form
-                  key="phone-form"
-                  onSubmit={handlePhoneSubmit}
-                  className="space-y-4"
-                >
+                <form onSubmit={handlePhoneSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <label
-                      htmlFor="phone"
-                      className="block text-sm font-medium text-gray-700"
-                    >
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
                       Phone Number
                     </label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                    <div className="relative group">
+                      <Phone className="absolute left-2 top-1/2 transform -translate-y-1/2 text-indigo-600 transition-colors" />
                       <input
                         id="phone"
                         type="tel"
                         placeholder="Enter your phone number"
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 ease-in-out"
+                        className="w-full pl-10 pr-3 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 bg-white/50 hover:bg-white group-hover:shadow-md"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         required
                       />
                     </div>
                   </div>
+
                   <button
                     type="submit"
-                    className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-200 ease-in-out flex items-center justify-center"
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center space-x-2"
                     disabled={isSendingOTP}
                   >
                     {isSendingOTP ? (
-                      <span className="flex items-center">
-                        <svg
-                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Sending...
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Sending...</span>
+                      </div>
                     ) : (
                       <>
-                        Send OTP
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                        <span>Send OTP</span>
+                        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                       </>
                     )}
                   </button>
                 </form>
               ) : (
-                <form
-                  key="otp-form"
-                  onSubmit={handleOtpSubmit}
-                  className="space-y-4"
-                >
+                <form onSubmit={handleOtpSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <label
-                      htmlFor="otp"
-                      className="block text-sm font-medium text-gray-700"
-                    >
+                    <label htmlFor="otp" className="block text-sm font-medium text-gray-700">
                       Enter OTP
                     </label>
                     <div className="flex justify-between space-x-2">
                       {otp.map((digit, index) => (
                         <input
                           key={index}
-                          ref={(el: HTMLInputElement | null) => {
-                            if (el) {
-                              otpInputs.current[index] = el;
-                            }
+                          // Fix: Properly type the ref callback
+                          ref={el => {
+                            otpInputs.current[index] = el;
                           }}
                           type="text"
                           maxLength={1}
-                          className="w-10 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 ease-in-out"
+                          className="w-12 h-14 text-center text-lg font-semibold border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 bg-white/50 backdrop-blur-sm hover:bg-white"
                           value={digit}
-                          onChange={(e) =>
-                            handleOtpChange(index, e.target.value)
-                          }
+                          onChange={(e) => handleOtpChange(index, e.target.value)}
                           required
                         />
                       ))}
                     </div>
                   </div>
+
                   <button
                     type="submit"
-                    className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-200 ease-in-out flex items-center justify-center"
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center space-x-2"
                     disabled={isVerifyingOTP}
                   >
                     {isVerifyingOTP ? (
-                      <span className="flex items-center">
-                        <svg
-                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Verifying...
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Verifying...</span>
+                      </div>
                     ) : (
                       <>
-                        Verify OTP
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                        <span>Verify OTP</span>
+                        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                       </>
                     )}
                   </button>
+
+                  {/* Back button */}
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="w-full mt-4 py-2 text-sm text-gray-600 hover:text-indigo-600 transition-colors"
+                  >
+                    ← Back to phone number
+                  </button>
                 </form>
               )}
-              <p className="mt-4 text-sm text-center text-gray-500">
-                <Link
-                  href="/register"
-                  className="font-medium text-indigo-600 hover:text-indigo-500"
-                >
-                
-                </Link>
-              </p>
             </div>
           </Card>
         </div>

@@ -9,7 +9,7 @@ export default function Home() {
       <main className="flex-grow">
         <HeroSection />
       </main>
-      <footer className="w-full bg-primary text-primary-foreground mt-auto">
+      <footer className="w-full bg-primary text-primary-foreground mt-auto px-4 xl:px-40 md:px-10">
         <div className="container mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between">
           <p className="text-sm mb-4 sm:mb-0">
             © {new Date().getFullYear()} SETU. All rights reserved.
