@@ -19,7 +19,8 @@ const nextConfig = {
       "www.oracle.com",
       "delhicourses.in",
       "www.bing.com",
-      "dk13n0ugcarh1.cloudfront.net",
+      "cdn1.dronahq.com",
+      "dk13n0ugcarh1.cloudfront.net"
     ],
   },
   webpack: (config) => {
