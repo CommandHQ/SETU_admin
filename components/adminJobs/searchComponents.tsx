@@ -137,43 +137,8 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ field, value, onChang
           }
           isMulti={isMulti}
         />
-        {isMulti && (
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="ml-2"
-            onClick={() => {
-              const selectedOption = options[0];
-              if (selectedOption) handleChange([...selectedItems, selectedOption], { 
-                action: "select-option", 
-                option: selectedOption 
-              });
-            }}
-            disabled={options.length === 0}
-          >
-            +
-          </Button>
-        )}
+
       </div>
-      {isMulti && (
-        <div className="mt-2 flex flex-wrap gap-2">
-          {selectedItems.map((item) => (
-            <div key={item.value} className="flex items-center bg-gray-100 rounded-full px-3 py-1">
-              <span className="mr-1">{item.label}</span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-4 w-4"
-                onClick={() => handleRemove(item)}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 };

@@ -85,7 +85,7 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="md:p-10 h-screen p-2 sm:p-6 w-full bg-slate-100">
+    <div className="md:p-10 h-full p-2 sm:p-6 w-full bg-slate-100">
       {/* Analytics Cards */}
       {!loading && analytics && (
         <div className="mb-6">

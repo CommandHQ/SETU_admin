@@ -4,9 +4,9 @@ import CertificationSalesCrud from "@/components/certification-sales/Certificati
   
 const CertificationSalesPage: React.FC = () => {  
   return (  
-   <div className="p-4 bg-slate-100">  
-    <CertificationSalesCrud />  
-   </div>  
+  <div className="p-4 bg-slate-100 h-full">  
+  <CertificationSalesCrud />  
+  </div>  
   );  
 };  
   

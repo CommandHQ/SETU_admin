@@ -22,23 +22,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { useRouter } from "next/navigation";
 import AnalyticsCard from "@/components/common/moduleAnalyticscard";
 import SearchAndFilter from "@/components/job/searchJobfilter";
-import EditJobForm from "@/components/job/EditJobForm";
 import { JobRow } from "@/components/job/JobRow";
 
 const Page = () => {
@@ -123,7 +108,7 @@ const Page = () => {
   }
 
   return (
-    <div className="p-2 sm:p-4 md:p-10 bg-slate-100 h-full ">
+    <div className="p-2 sm:p-4 md:p-10 bg-slate-100 h-screen ">
       <div className="space-y-8">
       <div className="mb-6">
           <AnalyticsCard

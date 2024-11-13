@@ -18,14 +18,12 @@ const AddJobDialog = () => {
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="max-w-4xl h-[90vh] p-0 bg-gray-50">
-        <DialogHeader className="px-6 py-4 bg-gradient-to-r from-gray-900 to-gray-950 rounded-md">
-          <DialogTitle className="text-xl font-semibold text-white flex items-center gap-2">
-            <Plus className="w-5 h-5" />
+      <DialogContent className="max-w-6xl h-[90vh] p-0 bg-gray-50">
+        <DialogHeader className="px-6 py-2 bg-gradient-to-r from-gray-900 to-gray-950 rounded-md">
+          <DialogTitle className="text-xl font-semibold text-white flex items-center gap-2 mt-5">
             Create New Job Position
           </DialogTitle>
         </DialogHeader>
-        
         <JobCreationForm onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>

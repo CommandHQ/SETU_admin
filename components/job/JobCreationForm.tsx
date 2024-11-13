@@ -11,7 +11,6 @@ import SearchComponent from "../adminJobs/searchComponents";
 import { Job } from "@/types";
 import toast from "react-hot-toast";
 
-
 interface Option {
   value: string;
   label: string;
@@ -49,7 +48,12 @@ const steps: { title: string; fields: FieldType[] }[] = [
     title: "Job Details",
     fields: [
       { name: "titleId", label: "Job Title", type: "select", required: true },
-      { name: "recruiterId", label: "Recruiter ID", type: "select", required: true },
+      {
+        name: "recruiterId",
+        label: "Recruiter ID",
+        type: "select",
+        required: true,
+      },
       {
         name: "locationType",
         label: "Location Type",
@@ -72,13 +76,24 @@ const steps: { title: string; fields: FieldType[] }[] = [
   {
     title: "Job Description",
     fields: [
-      { name: "description", label: "Job Description", type: "textarea", required: true },
+      {
+        name: "description",
+        label: "Job Description",
+        type: "textarea",
+        required: true,
+      },
     ],
   },
   {
     title: "Requirements",
     fields: [
-      { name: "skills", label: "Required Skills", type: "select", isMulti: true, required: true },
+      {
+        name: "skills",
+        label: "Required Skills",
+        type: "select",
+        isMulti: true,
+        required: true,
+      },
       {
         name: "experience",
         label: "Experience Level",
@@ -86,16 +101,43 @@ const steps: { title: string; fields: FieldType[] }[] = [
         options: ["Entry-level", "Mid-level", "Senior", "Executive"],
         required: true,
       },
-      { name: "department", label: "Department", type: "select", isMulti: true, required: true },
-      { name: "education", label: "Education Requirements", type: "select", isMulti: true, required: true },
+      {
+        name: "department",
+        label: "Department",
+        type: "select",
+        isMulti: true,
+        required: true,
+      },
+      {
+        name: "education",
+        label: "Education Requirements",
+        type: "select",
+        isMulti: true,
+        required: true,
+      },
     ],
   },
   {
     title: "Company Information",
     fields: [
-      { name: "industryType", label: "Industry Type", type: "input", required: true },
-      { name: "companyDescription", label: "Company Description", type: "textarea", required: true },
-      { name: "companyWebsite", label: "Company Website", type: "input", required: true },
+      {
+        name: "industryType",
+        label: "Industry Type",
+        type: "input",
+        required: true,
+      },
+      {
+        name: "companyDescription",
+        label: "Company Description",
+        type: "textarea",
+        required: true,
+      },
+      {
+        name: "companyWebsite",
+        label: "Company Website",
+        type: "input",
+        required: true,
+      },
     ],
   },
 ];
@@ -113,8 +155,8 @@ const JobCreationForm: React.FC<JobCreationFormProps> = ({ onClose }) => {
   const validateStep = (stepIndex: number) => {
     const currentFields = steps[stepIndex].fields;
     const newErrors: Record<string, string> = {};
-    
-    currentFields.forEach(field => {
+
+    currentFields.forEach((field) => {
       if (field.required) {
         const value = formData[field.name as keyof Job];
         if (!value || (Array.isArray(value) && value.length === 0)) {
@@ -127,30 +169,33 @@ const JobCreationForm: React.FC<JobCreationFormProps> = ({ onClose }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
-  const handleSelectChange = (name: string, isMulti: boolean) => (value: Option | Option[] | null) => {
-    if (isMulti) {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: Array.isArray(value) ? value.map(v => v.value) : []
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value ? (value as Option).value : null
-      }));
-    }
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
-    }
-  };
+  const handleSelectChange =
+    (name: string, isMulti: boolean) => (value: Option | Option[] | null) => {
+      if (isMulti) {
+        setFormData((prev) => ({
+          ...prev,
+          [name]: Array.isArray(value) ? value.map((v) => v.value) : [],
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value ? (value as Option).value : null,
+        }));
+      }
+      if (errors[name]) {
+        setErrors((prev) => ({ ...prev, [name]: "" }));
+      }
+    };
 
   const handleNext = () => {
     if (validateStep(currentStep) && currentStep < steps.length - 1) {
@@ -173,9 +218,11 @@ const JobCreationForm: React.FC<JobCreationFormProps> = ({ onClose }) => {
     setIsLoading(true);
     try {
       const jobData: Job = {
-        ...formData as Job,
+        ...(formData as Job),
         salary: formData.salary ? parseInt(formData.salary.toString()) : 0,
-        openings: formData.openings ? parseInt(formData.openings.toString()) : 0,
+        openings: formData.openings
+          ? parseInt(formData.openings.toString())
+          : 0,
         titleId: formData.titleId as string,
         skills: formData.skills || [],
         education: formData.education || [],
@@ -184,7 +231,7 @@ const JobCreationForm: React.FC<JobCreationFormProps> = ({ onClose }) => {
         status: "ACTIVE",
         applicants: 0,
       };
-      
+
       await createJob(jobData as unknown as CreateJobDto);
       toast.success("Job Added successfully");
       onClose();
@@ -232,31 +279,55 @@ const JobCreationForm: React.FC<JobCreationFormProps> = ({ onClose }) => {
                     className="text-sm font-medium text-gray-700 flex items-center"
                   >
                     {field.label}
-                    {field.required && <span className="text-red-500 ml-1">*</span>}
+                    {field.required && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
                   </Label>
-                  
+
                   {field.type === "textarea" ? (
                     <Textarea
                       id={field.name}
                       name={field.name}
                       onChange={handleInputChange}
-                      value={formData[field.name as keyof Job] as string || ""}
-                      className={`w-full min-h-[100px] ${errors[field.name] ? "border-red-500" : ""}`}
+                      value={
+                        (formData[field.name as keyof Job] as string) || ""
+                      }
+                      className={`w-full min-h-[100px] ${
+                        errors[field.name] ? "border-red-500" : ""
+                      }`}
                       placeholder={`Enter ${field.label.toLowerCase()}...`}
                     />
                   ) : field.type === "select" ? (
                     <div className="w-full z-10">
                       <SearchComponent
                         field={field}
-                        value={formData[field.name as keyof Job]
-                          ? Array.isArray(formData[field.name as keyof Job])
-                            ? (formData[field.name as keyof Job] as unknown as string[]).map((v: string) => ({
-                                value: v,
-                                label: v,
-                              }))
-                            : [{ value: formData[field.name as keyof Job] as string, label: formData[field.name as keyof Job] as string }]
-                          : []}
-                        onChange={handleSelectChange(field.name, field.isMulti || false)}
+                        value={
+                          formData[field.name as keyof Job]
+                            ? Array.isArray(formData[field.name as keyof Job])
+                              ? (
+                                  formData[
+                                    field.name as keyof Job
+                                  ] as unknown as string[]
+                                ).map((v: string) => ({
+                                  value: v,
+                                  label: v,
+                                }))
+                              : [
+                                  {
+                                    value: formData[
+                                      field.name as keyof Job
+                                    ] as string,
+                                    label: formData[
+                                      field.name as keyof Job
+                                    ] as string,
+                                  },
+                                ]
+                            : []
+                        }
+                        onChange={handleSelectChange(
+                          field.name,
+                          field.isMulti || false
+                        )}
                         isMulti={field.isMulti}
                       />
                     </div>
@@ -265,14 +336,20 @@ const JobCreationForm: React.FC<JobCreationFormProps> = ({ onClose }) => {
                       id={field.name}
                       name={field.name}
                       onChange={handleInputChange}
-                      value={formData[field.name as keyof Job] as string || ""}
-                      className={`w-full ${errors[field.name] ? "border-red-500" : ""}`}
+                      value={
+                        (formData[field.name as keyof Job] as string) || ""
+                      }
+                      className={`w-full ${
+                        errors[field.name] ? "border-red-500" : ""
+                      }`}
                       placeholder={`Enter ${field.label.toLowerCase()}...`}
                     />
                   )}
-                  
+
                   {errors[field.name] && (
-                    <p className="text-red-500 text-xs mt-1">{errors[field.name]}</p>
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors[field.name]}
+                    </p>
                   )}
                 </div>
               ))}
@@ -301,10 +378,7 @@ const JobCreationForm: React.FC<JobCreationFormProps> = ({ onClose }) => {
           >
             {isLoading ? (
               <>
-                <svg
-                  className="animate-spin h-4 w-4"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                   <circle
                     className="opacity-25"
                     cx="12"
@@ -343,4 +417,3 @@ const JobCreationForm: React.FC<JobCreationFormProps> = ({ onClose }) => {
 };
 
 export default JobCreationForm;
-

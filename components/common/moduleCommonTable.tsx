@@ -89,7 +89,7 @@ export function DataTable<T>({
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
-    <div className="space-y-8">
+    <div className="h-screen space-y-8">
       {analyticsCards && (
         <div className="grid gap-6 md:grid-cols-3">
           {analyticsCards}

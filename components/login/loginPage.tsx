@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Phone, ArrowRight, Lock, CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Card } from "@/components/ui/card";
 
 export default function Login() {
@@ -57,7 +57,7 @@ export default function Login() {
         if (result.error.includes("Unauthorized")) {
           toast.error("Access denied: Admin only");
         } else {
-          toast.error("Invalid OTP or login failed");
+          toast.error("Access denied: Admin only");
         }
         return;
       }
@@ -92,7 +92,6 @@ export default function Login() {
 
   useEffect(() => {
     if (sessionStatus !== 'loading' && sessionStatus === 'authenticated' && session) {
-      toast.error("You're already authenticated");
       router.replace('/dashboard');
     }
   }, [sessionStatus, session, router]);
